@@ -1,8 +1,20 @@
-# v0.1.0 发布审计 / Release audit
+# v0.1.1 发布审计 / Release audit
 
-审计日期：2026-10-16。范围为本次公开仓库的首个提交、macOS 应用、源码压缩包、校验文件及 Release 说明，不包括开发工作区和个人应用数据。
+审计日期：2026-10-16。范围为本次公开仓库的完整 Git 历史、v0.1.1 macOS 应用、源码压缩包、校验文件及 Release 说明；另重新下载并复查已发布的 v0.1.0。开发工作区和个人应用数据不属于发布内容。
 
-Audit date: October 16, 2026. Scope: the initial public repository commit, macOS app, source archive, checksums, and Release notes. The development workspace and personal app data are outside the published content.
+Audit date: October 16, 2026. Scope: the complete public Git history, v0.1.1 macOS app, source archive, checksums, and Release notes. Published v0.1.0 files were also downloaded and checked again. The development workspace and personal app data are outside the published content.
+
+## 已发布 v0.1.0 复查 / Published v0.1.0 recheck
+
+从 GitHub 重新取得公开仓库镜像和三个 Release 附件，核对远端 SHA-256，并检查全部历史内容、提交身份及归档中的文件。与本机真实记录提取的项目名、标题和长文本特征比对，未发现匹配，也未发现个人数据库、同步配置、备份或截图。比对用的私人内容保留在本机，未写入仓库或附件。未发现需要下架或删除仓库的泄漏证据。
+
+A fresh GitHub repository mirror and all three Release assets were retrieved, their remote SHA-256 digests verified, and all historical content, commit identities, and archived files examined. Comparisons against project names, titles, and distinctive long-text fragments from local real entries found no matches. No personal database, sync settings, backup, or screenshot was found. Private comparison material stayed local and was not written to the repository or assets. No evidence requiring a takedown or repository deletion was found.
+
+## 示例项目隔离 / Sample-project isolation
+
+发行应用不附带数据库、账号配置或同步快照。首次启动只在本地数据库为空、尚未初始化示例、且没有绑定同步账号时，从通用文字生成 3 个示例项目和 6 条记录。已有数据库和已绑定账号不会被示例覆盖。全新环境实测和固定示例清单测试用于核对这一边界。
+
+The release app ships without a database, account settings, or sync snapshot. On first launch, generic source text generates three sample projects and six entries only when the local database is empty, samples have not been initialized, and no sync account is linked. Existing databases and linked accounts are not replaced with samples. A fresh-environment check and fixed sample-allowlist test verify this boundary.
 
 ## 个人信息与敏感信息 / Personal and sensitive information
 
@@ -10,7 +22,7 @@ Audit date: October 16, 2026. Scope: the initial public repository commit, macOS
 - 公开内容不包含个人数据库、坚果云同步快照或配置、Keychain 导出、日志、备份、个人截图、iPhone 安装包、设备描述文件或签名证书。测试邮箱使用保留的 `.invalid` 域名。<br>Published content excludes personal databases, Nutstore snapshots and settings, Keychain exports, logs, backups, personal screenshots, iPhone packages, provisioning profiles, and signing certificates. Test email addresses use the reserved `.invalid` domain.
 - macOS 应用使用本地 ad-hoc 签名，无个人签名身份或 TeamIdentifier，严格签名完整性校验通过。既有 Bundle ID、Keychain 服务名和可选 CloudKit 命名空间保留，用于版本兼容；这些是应用标识，不是登录凭据。<br>The macOS app uses a local ad-hoc signature without a personal signing identity or TeamIdentifier, and strict signature integrity verification passed. Existing bundle, Keychain-service, and optional CloudKit namespaces remain for version compatibility; they identify the app and are not login credentials.
 - 检查 13 张图标图片，未发现 GPS、设备型号、序列号、拥有者或个人作者标签。两个设计母版保留公开的图像生成来源信息，其余 EXIF 仅为色彩空间和尺寸。<br>All 13 icon images were checked for GPS, device models, serial numbers, owners, and personal author tags, with none found. The two design masters retain public image-generation provenance; other EXIF data contains only color-space and image-dimension information.
-- 采用隔离的源码目录创建首次 Git 历史，提交身份使用 GitHub noreply 邮箱；历史内容和提交元数据均经过检查。<br>The initial Git history was created from an isolated source directory using a GitHub noreply email. Both historical content and commit metadata were reviewed.
+- 使用隔离的源码目录准备发布，提交身份使用 GitHub noreply 邮箱；完整历史内容和提交元数据均经过检查。<br>The release was prepared from an isolated source directory using a GitHub noreply email. Complete historical content and commit metadata were reviewed.
 - 发布附件采用明确白名单。压缩包不包含 AppleDouble、`__MACOSX`、用户扩展属性副本、开发缓存或个人签名文件；附件内容与审核后的文件一致。<br>Release assets use an explicit allowlist. Archives exclude AppleDouble, `__MACOSX`, copies of user extended attributes, development caches, and personal signing files, and match the reviewed files.
 
 ## 依赖与验证 / Dependencies and validation

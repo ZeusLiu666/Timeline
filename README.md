@@ -8,11 +8,21 @@ Timeline 是面向 Mac、iPhone 和 iPad 的原生应用，采用简洁的时间
 
 Timeline is a native app for Mac, iPhone, and iPad. Its simple timeline supports offline Markdown and LaTeX formulas, references to past entries, and Nutstore sync.
 
-当前版本为 **v0.1.0**。下载 macOS 安装包与源码，请前往 [GitHub Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.0)。
+当前版本为 **v0.1.1**。下载 macOS 安装包与源码，请前往 [GitHub Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.1)。
 
-The current version is **v0.1.0**. Download the macOS app and source from the [GitHub Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.0).
+The current version is **v0.1.1**. Download the macOS app and source from the [GitHub Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.1).
 
 [更新记录 / Changelog](CHANGELOG.md) · [验证范围 / Validation](VALIDATION.md) · [发布审计 / Release audit](RELEASE-AUDIT.md)
+
+## 示例与个人数据 / Samples and personal data
+
+发行包不含开发者的真实项目、记录、数据库、坚果云配置或密码。全新、未绑定同步账号且数据库为空时，应用从通用文字生成「Timeline」「研究与探索」「个人计划」3 个示例项目，共 6 条示例记录。
+
+Release packages contain no developer projects, entries, databases, Nutstore settings, or passwords. On a fresh, empty workspace with no linked sync account, the app generates three generic sample projects—Timeline, Research and Exploration, and Personal Plans—with six sample entries.
+
+升级或重新安装后，应用会继续读取此设备原有数据；手动绑定自己的坚果云账号后，也可接收自己的云端记录。这些内容来自使用者的本机或账号，不在公开发行包中。应用不会为显示示例而删除或覆盖已有项目。初次使用时可先删除不需要的示例，再绑定自己的同步账号。
+
+After an update or reinstall, the app continues to read this device's existing data. Linking your own Nutstore account also allows it to receive your cloud records. That content comes from your device or account, not from the public package. Existing projects are never deleted or replaced to display samples. On first use, remove unwanted samples before linking your sync account.
 
 ## 功能 / Features
 
@@ -58,7 +68,7 @@ Items are cleaned up automatically after 30 days; there is no manual permanent-d
 
 Requires **macOS 14 or later**. Supports Apple Silicon and Intel Macs.
 
-1. 从 [v0.1.0 Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.0) 下载 `Timeline-macOS.zip` 并解压。<br>Download `Timeline-macOS.zip` from the [v0.1.0 Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.0) and extract it.
+1. 从 [v0.1.1 Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.1) 下载 `Timeline-macOS.zip` 并解压。<br>Download `Timeline-macOS.zip` from the [v0.1.1 Release](https://github.com/ZeusLiu666/Timeline/releases/tag/v0.1.1) and extract it.
 2. 将 `Timeline.app` 拖入「应用程序」文件夹。<br>Drag `Timeline.app` into the Applications folder.
 3. 打开 Timeline，创建项目并开始记录。<br>Open Timeline, create a project, and start writing.
 

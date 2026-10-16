@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## v0.1.1 — 2026-10-16
+
+- 编辑区随实际文字换行自动增高或缩短，取消正文输入框和原位编辑卡片的固定高度，长记录统一随主页面滚动。<br>Editors grow or shrink with actual text wrapping. Fixed heights were removed from source fields and inline editor cards, and long entries scroll with the main page.
+- 每个正文输入区在末行后始终保留约四行空白；同时修正原生编辑器的焦点衔接，保留粘贴、撤销、保存和实时公式预览。<br>Each source field always retains roughly four blank lines after its content. Native focus handling was corrected while retaining paste, undo, save, and live formula previews.
+
+- 全新、未绑定同步账号的空数据库只生成 3 个通用示例项目和 6 条示例记录，不打包开发者数据库或同步配置；升级不覆盖已有项目。<br>A fresh empty database without a linked sync account generates only three generic sample projects and six sample entries. Developer databases and sync settings are never bundled, and upgrades preserve existing projects.
+- 重新下载并审计 v0.1.0 的公开源码、完整 Git 历史和附件，未检出真实项目或敏感资料；本次继续仅提供 macOS、源码和校验文件，不发布短期签名的 iPhone 安装包。<br>The public v0.1.0 source, full Git history, and assets were downloaded and audited again, with no real projects or sensitive data detected. This release continues to provide only macOS, source, and checksums, without a short-lived signed iPhone package.
+
 ## v0.1.0 — 2026-10-16
 
 首个公开版本，提供 macOS 通用应用与 macOS / iOS 工程源码。个人开发的 iPhone 版本仅有短期开发签名，因此不发布 iPhone 安装包。

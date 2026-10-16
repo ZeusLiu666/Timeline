@@ -1,5 +1,10 @@
 import Foundation
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct EntryDraft: Equatable {
     var title: String
@@ -41,7 +46,8 @@ struct EntryEditorView: View {
     @State private var references: [TimelineReference]
     @State private var inspectedReference: TimelineReference?
     @State private var saveError: String?
-    @FocusState private var focusedField: ComposeField?
+    @State private var focusedField: ComposeField?
+    @FocusState private var titleIsFocused: Bool
 
     private enum ComposeField: Hashable { case title, progress, issues, ideas }
 
@@ -110,41 +116,10 @@ struct EntryEditorView: View {
                 .fixedSize()
             }
             .foregroundStyle(EditorColors.ink).padding(.horizontal, 24).padding(.top, 22).padding(.bottom, 17)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    TextField("标题（可选，留空自动生成）", text: $title, axis: .vertical)
-                        .textFieldStyle(.plain).font(.system(size: 18, weight: .medium))
-                        .lineLimit(1...2).foregroundStyle(EditorColors.ink)
-                        .focused($focusedField, equals: .title).accessibilityLabel("记录标题，可选")
-                    attachedReferences
-                    composeSection(title: "进展记录", symbol: "circle.fill", text: $progressText, field: .progress, placeholder: "写下今天的进展…\n- 完成了什么\n- 下一步计划", height: 120)
-                    if showsIssueInput {
-                        composeSection(title: "待解决问题", symbol: "square", text: $issuesText, field: .issues, placeholder: "每行一个问题，使用 - [ ]；\n完成后可在时间线上勾选。", height: 85)
-                    }
-                    if showsIdeaInput {
-                        composeSection(title: "Idea", symbol: "lightbulb", text: $ideasText, field: .ideas, placeholder: "有什么值得留下的想法？", height: 80)
-                    }
-                    if !showsIssueInput || !showsIdeaInput {
-                        HStack(spacing: 18) {
-                            if !showsIssueInput {
-                                Button {
-                                    showsIssueInput = true
-                                    showIssues = true
-                                    focusedField = .issues
-                                } label: { Label("问题", systemImage: "plus") }
-                            }
-                            if !showsIdeaInput {
-                                Button {
-                                    showsIdeaInput = true
-                                    showIdeas = true
-                                    focusedField = .ideas
-                                } label: { Label("Idea", systemImage: "plus") }
-                            }
-                        }
-                        .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(EditorColors.muted)
-                    }
-                }
-                .padding(.horizontal, 24).padding(.bottom, 22)
+            if inline {
+                composition
+            } else {
+                ScrollView { composition }
             }
             if let saveError {
                 Label(saveError, systemImage: "exclamationmark.triangle.fill")
@@ -182,10 +157,52 @@ struct EntryEditorView: View {
             focusedField = .progress
         }
         .onChange(of: currentDraft, initial: true) { _, draft in onDraftChange?(draft) }
+        .onChange(of: titleIsFocused) { _, focused in
+            if focused { focusedField = nil }
+        }
         #if os(macOS)
         .frame(minWidth: inline ? nil : 760, idealWidth: inline ? nil : 840, maxWidth: .infinity, minHeight: inline ? nil : 480, idealHeight: inline ? nil : 600)
         #endif
-        .frame(height: inline ? (!showsIssueInput && !showsIdeaInput && (editorWidth > 700 || progressText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? 420 : 560) : nil)
+    }
+
+    private var composition: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            TextField("标题（可选，留空自动生成）", text: $title, axis: .vertical)
+                .textFieldStyle(.plain).font(.system(size: 18, weight: .medium))
+                .lineLimit(1...2).foregroundStyle(EditorColors.ink)
+                .focused($titleIsFocused).accessibilityLabel("记录标题，可选")
+            attachedReferences
+            composeSection(title: "进展记录", symbol: "circle.fill", text: $progressText, field: .progress,
+                           placeholder: "写下今天的进展…\n- 完成了什么\n- 下一步计划", height: 144)
+            if showsIssueInput {
+                composeSection(title: "待解决问题", symbol: "circle.fill", text: $issuesText, field: .issues,
+                               placeholder: "每行一个问题，使用 - [ ]；\n完成后可在时间线上勾选。", height: 120)
+            }
+            if showsIdeaInput {
+                composeSection(title: "Idea", symbol: "circle.fill", text: $ideasText, field: .ideas,
+                               placeholder: "有什么值得留下的想法？", height: 120)
+            }
+            if !showsIssueInput || !showsIdeaInput {
+                HStack(spacing: 18) {
+                    if !showsIssueInput {
+                        Button {
+                            showsIssueInput = true
+                            showIssues = true
+                            focusedField = .issues
+                        } label: { Label("问题", systemImage: "plus") }
+                    }
+                    if !showsIdeaInput {
+                        Button {
+                            showsIdeaInput = true
+                            showIdeas = true
+                            focusedField = .ideas
+                        } label: { Label("Idea", systemImage: "plus") }
+                    }
+                }
+                .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(EditorColors.muted)
+            }
+        }
+        .padding(.horizontal, 24).padding(.bottom, 22)
     }
 
     @ViewBuilder
@@ -253,13 +270,15 @@ struct EntryEditorView: View {
                 Text(placeholder).font(.system(size: 13)).lineSpacing(4).foregroundStyle(EditorColors.faint)
                     .padding(.horizontal, 13).padding(.top, 12).allowsHitTesting(false)
             }
-            TextEditor(text: text).font(.system(size: 13, design: .monospaced)).foregroundStyle(EditorColors.secondaryInk)
-                .scrollContentBackground(.hidden).focused($focusedField, equals: field)
-                .padding(7).frame(height: height).accessibilityLabel(title(for: field))
-                #if os(iOS)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                #endif
+            TimelineGrowingTextEditor(text: text,
+                isFocused: Binding(get: { focusedField == field }, set: { focused in
+                    if focused {
+                        focusedField = field
+                        titleIsFocused = false
+                    }
+                    else if focusedField == field { focusedField = nil }
+                }), minimumHeight: height, label: title(for: field))
+                .frame(maxWidth: .infinity, minHeight: height)
         }
         .background(EditorColors.wash, in: RoundedRectangle(cornerRadius: 6))
     }
@@ -337,6 +356,251 @@ enum EntryEditorSupport {
         return "新的记录"
     }
 }
+
+enum TimelineEditorLayout {
+    // Keep roughly four blank lines available below the last line of text.
+    static let writingSpace: CGFloat = 64
+    static let inset: CGFloat = 12
+}
+
+#if os(macOS)
+final class TimelineEditorTextView: NSTextView {
+    var onFocusChange: ((Bool) -> Void)?
+
+    override func becomeFirstResponder() -> Bool {
+        let accepted = super.becomeFirstResponder()
+        if accepted { onFocusChange?(true) }
+        return accepted
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let accepted = super.resignFirstResponder()
+        if accepted { onFocusChange?(false) }
+        return accepted
+    }
+
+    static func make() -> TimelineEditorTextView {
+        let storage = NSTextStorage()
+        let layout = NSLayoutManager()
+        let container = NSTextContainer(size: NSSize(width: 1, height: CGFloat.greatestFiniteMagnitude))
+        storage.addLayoutManager(layout)
+        layout.addTextContainer(container)
+        container.widthTracksTextView = false
+        container.heightTracksTextView = false
+        container.lineFragmentPadding = 0
+        let view = TimelineEditorTextView(frame: .zero, textContainer: container)
+        view.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        view.textColor = NSColor(EditorColors.secondaryInk)
+        view.textContainerInset = NSSize(width: TimelineEditorLayout.inset, height: TimelineEditorLayout.inset)
+        view.drawsBackground = false
+        view.isRichText = false
+        view.importsGraphics = false
+        view.allowsUndo = true
+        view.isHorizontallyResizable = false
+        view.isVerticallyResizable = false
+        view.minSize = .zero
+        view.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        view.isAutomaticQuoteSubstitutionEnabled = false
+        view.isAutomaticDashSubstitutionEnabled = false
+        view.isAutomaticTextReplacementEnabled = false
+        view.isAutomaticSpellingCorrectionEnabled = false
+        // NSTextView's initializer configures its container again. Apply these
+        // after initialization so measuring a proposed width uses that width.
+        container.widthTracksTextView = false
+        container.heightTracksTextView = false
+        container.lineFragmentPadding = 0
+        return view
+    }
+
+    func contentHeight(for width: CGFloat) -> CGFloat {
+        guard let textContainer, let layoutManager else { return 0 }
+        textContainer.containerSize = NSSize(width: max(1, width - 2 * textContainerInset.width), height: CGFloat.greatestFiniteMagnitude)
+        layoutManager.ensureLayout(for: textContainer)
+        return max(layoutManager.usedRect(for: textContainer).maxY,
+                   layoutManager.extraLineFragmentRect.maxY,
+                   layoutManager.defaultLineHeight(for: font ?? .systemFont(ofSize: 13)))
+    }
+
+    func fittingHeight(for width: CGFloat, minimum: CGFloat) -> CGFloat {
+        max(minimum, ceil(contentHeight(for: width) + 2 * textContainerInset.height + TimelineEditorLayout.writingSpace))
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        let widthChanged = abs(newSize.width - frame.width) > 0.5
+        super.setFrameSize(newSize)
+        if widthChanged {
+            textContainer?.containerSize = NSSize(width: max(1, newSize.width - 2 * textContainerInset.width), height: CGFloat.greatestFiniteMagnitude)
+        }
+    }
+}
+
+struct TimelineGrowingTextEditor: NSViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    var minimumHeight: CGFloat
+    var label: String
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeNSView(context: Context) -> TimelineEditorTextView {
+        let view = TimelineEditorTextView.make()
+        view.delegate = context.coordinator
+        view.onFocusChange = { [weak coordinator = context.coordinator] focused in
+            coordinator?.parent.isFocused = focused
+        }
+        view.setAccessibilityLabel(label)
+        return view
+    }
+
+    func updateNSView(_ view: TimelineEditorTextView, context: Context) {
+        context.coordinator.parent = self
+        if view.string != text && !view.hasMarkedText() { view.string = text }
+        view.setAccessibilityLabel(label)
+        if isFocused && view.window?.firstResponder !== view {
+            DispatchQueue.main.async { [weak view, weak coordinator = context.coordinator] in
+                guard let view, coordinator?.parent.isFocused == true else { return }
+                view.window?.makeFirstResponder(view)
+            }
+        } else if !isFocused && view.window?.firstResponder === view {
+            view.window?.makeFirstResponder(nil)
+        }
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: TimelineEditorTextView, context: Context) -> CGSize? {
+        guard let width = proposal.width, width > 1, width.isFinite else { return nil }
+        return CGSize(width: width, height: nsView.fittingHeight(for: width, minimum: minimumHeight))
+    }
+
+    static func dismantleNSView(_ view: TimelineEditorTextView, coordinator: Coordinator) {
+        view.delegate = nil
+        view.onFocusChange = nil
+    }
+
+    final class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: TimelineGrowingTextEditor
+        init(_ parent: TimelineGrowingTextEditor) { self.parent = parent }
+        func textDidChange(_ notification: Notification) {
+            guard let view = notification.object as? TimelineEditorTextView else { return }
+            parent.text = view.string
+            view.invalidateIntrinsicContentSize()
+            DispatchQueue.main.async { [weak view] in
+                guard let view, view.window?.firstResponder === view else { return }
+                view.scrollRangeToVisible(view.selectedRange())
+            }
+        }
+    }
+}
+#else
+final class TimelineEditorTextView: UITextView {
+    static func make() -> TimelineEditorTextView {
+        let storage = NSTextStorage()
+        let layout = NSLayoutManager()
+        let container = NSTextContainer(size: CGSize(width: 1, height: CGFloat.greatestFiniteMagnitude))
+        storage.addLayoutManager(layout)
+        layout.addTextContainer(container)
+        container.widthTracksTextView = false
+        container.heightTracksTextView = false
+        container.lineFragmentPadding = 0
+        let view = TimelineEditorTextView(frame: .zero, textContainer: container)
+        view.font = .monospacedSystemFont(ofSize: 13, weight: .regular)
+        view.textColor = UIColor(EditorColors.secondaryInk)
+        view.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        view.backgroundColor = .clear
+        view.isScrollEnabled = false
+        view.showsVerticalScrollIndicator = false
+        view.showsHorizontalScrollIndicator = false
+        view.autocapitalizationType = .none
+        view.autocorrectionType = .no
+        view.smartQuotesType = .no
+        view.smartDashesType = .no
+        container.widthTracksTextView = false
+        container.heightTracksTextView = false
+        container.lineFragmentPadding = 0
+        return view
+    }
+
+    func contentHeight(for width: CGFloat) -> CGFloat {
+        textContainer.size = CGSize(width: max(1, width - textContainerInset.left - textContainerInset.right), height: CGFloat.greatestFiniteMagnitude)
+        layoutManager.ensureLayout(for: textContainer)
+        return max(layoutManager.usedRect(for: textContainer).maxY,
+                   layoutManager.extraLineFragmentRect.maxY,
+                   font?.lineHeight ?? 16)
+    }
+
+    func fittingHeight(for width: CGFloat, minimum: CGFloat) -> CGFloat {
+        max(minimum, ceil(contentHeight(for: width) + textContainerInset.top + textContainerInset.bottom + TimelineEditorLayout.writingSpace))
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        textContainer.size = CGSize(width: max(1, bounds.width - textContainerInset.left - textContainerInset.right), height: CGFloat.greatestFiniteMagnitude)
+    }
+
+    func revealCaretInPage() {
+        guard isFirstResponder, let selection = selectedTextRange, selection.isEmpty else { return }
+        var ancestor = superview
+        while let view = ancestor {
+            if let scroll = view as? UIScrollView, scroll.isScrollEnabled {
+                let caret = convert(caretRect(for: selection.end), to: scroll).insetBy(dx: 0, dy: -24)
+                scroll.scrollRectToVisible(caret, animated: false)
+                return
+            }
+            ancestor = view.superview
+        }
+    }
+}
+
+struct TimelineGrowingTextEditor: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var isFocused: Bool
+    var minimumHeight: CGFloat
+    var label: String
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIView(context: Context) -> TimelineEditorTextView {
+        let view = TimelineEditorTextView.make()
+        view.delegate = context.coordinator
+        view.accessibilityLabel = label
+        return view
+    }
+
+    func updateUIView(_ view: TimelineEditorTextView, context: Context) {
+        context.coordinator.parent = self
+        if view.text != text && view.markedTextRange == nil { view.text = text }
+        view.accessibilityLabel = label
+        if isFocused && !view.isFirstResponder {
+            DispatchQueue.main.async { [weak view, weak coordinator = context.coordinator] in
+                guard let view, view.window != nil, coordinator?.parent.isFocused == true else { return }
+                view.becomeFirstResponder()
+            }
+        } else if !isFocused && view.isFirstResponder { view.resignFirstResponder() }
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: TimelineEditorTextView, context: Context) -> CGSize? {
+        guard let width = proposal.width, width > 1, width.isFinite else { return nil }
+        return CGSize(width: width, height: uiView.fittingHeight(for: width, minimum: minimumHeight))
+    }
+
+    static func dismantleUIView(_ view: TimelineEditorTextView, coordinator: Coordinator) { view.delegate = nil }
+
+    final class Coordinator: NSObject, UITextViewDelegate {
+        var parent: TimelineGrowingTextEditor
+        init(_ parent: TimelineGrowingTextEditor) { self.parent = parent }
+        func textViewDidBeginEditing(_ view: UITextView) { parent.isFocused = true }
+        func textViewDidEndEditing(_ view: UITextView) { parent.isFocused = false }
+        func textViewDidChange(_ view: UITextView) {
+            parent.text = view.text
+            view.invalidateIntrinsicContentSize()
+            DispatchQueue.main.async { [weak view] in (view as? TimelineEditorTextView)?.revealCaretInPage() }
+        }
+        func textViewDidChangeSelection(_ view: UITextView) {
+            guard view.markedTextRange == nil else { return }
+            (view as? TimelineEditorTextView)?.revealCaretInPage()
+        }
+    }
+}
+#endif
 
 private enum EditorColors {
     static let wash = Color(red: 0.965, green: 0.970, blue: 0.974)

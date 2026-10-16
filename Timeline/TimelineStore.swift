@@ -165,6 +165,12 @@ final class TimelineStore: ObservableObject {
                     self?.nutstoreState = state
                     self?.scheduleTrashMaintenance()
                 }
+                // Welcome content is generated from generic source literals,
+                // only for a fresh, unlinked local workspace. Never replace
+                // existing records or populate a linked account's empty store.
+                if let nutstoreSync, !nutstoreSync.configured, nutstoreSync.username.isEmpty {
+                    seedWelcomeProjectsIfNeeded()
+                }
             } catch {
                 nutstoreState = NutstoreSyncStatus(title: "同步需要关注", detail: NutstoreSyncError.persistence.localizedDescription)
             }
