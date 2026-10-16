@@ -1,0 +1,40 @@
+Timeline 图标重新设计 / Timeline icon redesign · 2026-10-16
+生成方式：内置 image_gen.imagegen（imagegen 技能），未使用 CLI 备用方案。
+Method: built-in image_gen.imagegen (imagegen skill), no CLI fallback.
+
+iOS 初版母版提示词 / iOS master prompt:
+
+中文译文 / Chinese translation:
+用途：品牌标志（logo-brand）。资源类型：用于名为 Timeline 的极简项目进度时间线应用的正式 1024×1024 iPhone 应用图标母版。创建一个精致、极简且有科技感的图标，正面平面图形，不是效果样机。背景为铺满画布的不透明正方形，采用午夜石墨灰／海军蓝，仅带几乎不可察觉的平滑冷色调渐变。中央是一枚醒目而精致的时间线符号：一条端部柔和圆润、明亮冰蓝色的竖向主线，主线上恰好有三个干净的小圆节点，各节点高度处各有一条向右延伸的短圆头横线。中间节点使用稍亮的青色，其余节点为柔和珍珠白／低饱和蓝。视觉平衡，保留充足留白，符号占画布中央约 48% 的宽度和 58% 的高度，小尺寸下仍清晰。所有几何边缘清楚、抗锯齿平滑、笔画粗细统一，呈现克制、现代、具有 Apple 品质感的极简风格。仅有极轻微的柔和材质层次，整体基本为平面符号。不要文字、字母、数字、钟面、勾号、边框、外框、闪光、杂乱电路、图形外部阴影、设备样机或展示背景。使用完整正方形画布，不要预先把 iOS 母版外角裁成圆角：操作系统会应用精确的系统圆角轮廓。不要透明区域。
+
+英文原文 / Original English:
+Use case: logo-brand. Asset type: production 1024x1024 iPhone app icon master for an app named Timeline, a minimal project progress timeline. Create ONE polished extremely minimal technology-inspired icon, straight-on flat artwork, not a mockup. Full-bleed opaque square midnight graphite/navy background with only a barely perceptible smooth cool tonal gradient. In the center, a bold refined timeline glyph: one vertical softly rounded luminous ice-blue spine, exactly three clean small circular nodes on the spine and three short horizontal rounded segments extending to the right at their respective node heights. The middle node is subtly brighter cyan, the other nodes soft pearl white / muted blue. Optical balance with ample negative space, glyph occupies central 48% width and 58% height, legible at tiny sizes. All geometry crisp, smoothly antialiased, unified stroke weights, restrained modern Apple-quality minimalism. Very subtle soft material depth only, essentially a flat symbol. No words, letters, numbers, clock face, checkmarks, borders, outer frame, sparkles, circuitry clutter, shadows outside the artwork, device mockups or presentation background. Square full canvas, do NOT pre-round the outer corners in this iOS master: the OS will apply the exact system rounded contour. No transparent areas.
+
+macOS 导出提示词（参考：iOS 母版；transparent_background=true）/ macOS export prompt (reference: iOS master; transparent_background=true):
+
+中文译文 / Chinese translation:
+用途：保持设计身份（identity-preserve）。基于这张 Timeline 图标图形，创建与之匹配的 macOS 应用图标导出版本。保留午夜海军蓝配色、中央冰蓝色三节点时间线符号、几何结构、全部三条横线、明亮的青色中间节点，以及原有视觉比例。唯一改动是外部容器：形成 Apple 风格、曲率连续且平滑的圆角方形图块（squircle），距离画布每条边约 5%，使用宽大流畅的圆角，符合现代 macOS 应用图标风格。海军蓝圆角图块以外的所有区域必须具有真实透明 alpha，包括画布四个角。绝对不要不透明正方形背景、假的棋盘格、白色／黑色外围背景、外框或展示场景。海军蓝背景只能保留在圆角图块内部。正方形画布上居中正视。不要新增文字、额外符号或投影。圆角轮廓采用干净、清晰的抗锯齿处理。这是最终可安装的 macOS 图标资源，不是效果样机。
+
+英文原文 / Original English:
+Use case: identity-preserve. Create the matching macOS application icon export from this exact Timeline icon artwork. Preserve the midnight navy coloring, central ice-blue three-node timeline glyph, its geometry, all three horizontal bars, the bright cyan middle node, and its optical proportions. The ONLY change is to the outer container: form a smooth Apple-style continuous-curvature rounded square (squircle) tile, inset about 5% from each canvas edge, with large fluid rounded corners matching a modern macOS app icon. Entire area OUTSIDE that rounded navy tile MUST be genuinely transparent alpha, including all four canvas corners. Absolutely no opaque square background, fake checkerboard, white/black surrounding backdrop, outer frame or presentation. Keep the navy background only INSIDE the rounded tile. Centered front view on a square canvas. No added text, no extra glyphs, no drop shadow. Clean crisp antialiasing at the rounded silhouette. This is the final installable macOS icon asset, not a mockup.
+
+打包：将 macOS 图形重采样为 16–1024 像素并保留 alpha；将 iOS 母版重采样为不透明 RGB 1024 像素图像。iOS 图像不预先加入圆角蒙版。macOS 传统 .icns 使用生成的圆角轮廓，以兼容 macOS 14。
+Packaging: resample macOS artwork to 16–1024 pixels while retaining alpha; resample iOS master to opaque RGB 1024 pixels. No baked-in iOS corner mask. macOS legacy .icns uses the generated rounded silhouette for macOS 14 compatibility.
+
+最终大图形修订（内置 image_gen.imagegen；以下对应当前使用的母版）/ Final larger-symbol revision (built-in image_gen.imagegen; these are the current master images):
+
+iOS 最终提示词（参考：首版 iOS 母版；transparent_background=false）/ iOS final prompt (reference: first iOS master; transparent_background=false):
+
+中文译文 / Chinese translation:
+用途：保持设计身份（identity-preserve）。修改这张 Timeline 应用图标，将中央符号显著放大，使其更充分地填满图标。保留铺满画布的不透明正方形午夜海军蓝背景，以及干净的三节点冰蓝色时间线概念、明亮的青色中间节点、柔和白色的其余节点、三条圆头横线和克制平滑的明暗层次。用户认为目前中央标记太小、空白过多。重新安排符号，使其占整个画布约 60–64% 的宽度和 78–80% 的高度。将竖向主线放在距画布左边约 29–31% 宽度处，三条横线延伸到画布约 85% 宽度处。按比例放大圆节点并加粗等宽线条。节点保持正圆，线端保持圆润。构图平衡、清晰、极简且有科技感。视觉居中，上下边距紧凑但舒适，各约 10–11%。只保留 3 个节点和 3 条横线，不增加其他图形细节或文字。不要只是缩放整个正方形背景；需要放大背景内部的符号。使用铺满画布的不透明正方形 iOS 母版，不预先圆角化，不透明，不留画布外边距或外框。
+
+英文原文 / Original English:
+Use case: identity-preserve. Revise this exact Timeline app icon to make the central glyph MUCH larger and more confidently fill the icon. Keep the midnight navy full-bleed opaque square background and the exact clean three-node ice-blue timeline concept, bright cyan middle node, soft white other nodes, three horizontal rounded bars, restrained smooth shading. The user finds the current central mark too small with too much empty space. Recompose the glyph to occupy approximately 60–64% of the whole canvas width and 78–80% of its height. Put the vertical spine roughly at 29–31% of canvas width; extend the three bars to around 85% of canvas width. Enlarge the circular nodes and thicken the monoline strokes proportionally. Circular nodes stay perfectly circular, line ends round. Balanced, crisp, extremely minimal and technological. Optical centering, tight but comfortable top/bottom padding around 10–11%. Preserve just 3 nodes and 3 bars, no extra graphic details or text. Do NOT simply scale the whole square background; enlarge the symbol inside it. Full-bleed opaque square iOS master, no baked corner rounding, no transparency, no margins or outer frame.
+
+macOS 最终提示词（参考：首版 macOS 母版；transparent_background=true）/ macOS final prompt (reference: first macOS master; transparent_background=true):
+
+中文译文 / Chinese translation:
+用途：保持设计身份（identity-preserve）。修改这张 macOS Timeline 应用图标，使其符号占据明显更大的面积。保留午夜海军蓝、冰蓝色三节点时间线符号、3 个圆节点、青色中间节点、3 条圆头横线，以及平滑、极简的科技风格。将平滑的 Apple 风格连续曲率海军蓝圆角图块扩大到正方形画布的 91–93%，每侧只保留约 4% 的透明外边距。在图块内部大幅放大并重新安排符号：符号占整个画布约 60–64% 的宽度和 74–77% 的高度；竖向主线位于距画布左边约 30–32% 宽度处，全部三条横线延伸到画布约 84–85% 宽度处。节点更大并保持正圆，线条按比例加粗，端部柔和圆润。保持紧凑、平衡的内部边距，避免裁切。用户明确希望减少大量空白。保留海军蓝明暗层次和干净的抗锯齿效果。圆角方形图块之外必须保持真实透明 alpha，包括画布四个角。不要新增字母、额外元素、边框、假棋盘格、不透明外围背景或外部阴影。只生成一个正面视角的正式图标，不是效果样机。
+
+英文原文 / Original English:
+Use case: identity-preserve. Revise this exact macOS Timeline app icon so its symbol fills MUCH more of the icon. Preserve the midnight navy, ice-blue three-node timeline glyph with 3 round nodes, cyan middle node, 3 rounded bars, smooth minimal technological aesthetic. Enlarge the smooth Apple-style continuous-curvature rounded navy tile to occupy 91–93% of the square canvas (only about 4% transparent outer margin each side). Inside this tile enlarge and recompose the glyph substantially: symbol occupies about 60–64% of full canvas width and 74–77% of full canvas height; vertical spine roughly at 30–32% of full canvas width and all three bars extend toward 84–85% of full canvas width. Nodes larger and perfectly round, strokes thicker in proportion, softly rounded ends. Maintain tight balanced interior padding, no clipping. User explicitly wants much less empty space. Keep navy shading and clean antialiasing. The outside of the rounded-square tile MUST remain genuine transparent alpha including all four canvas corners. No added letters, no additional elements, no frames, fake checkerboard, opaque outer backdrop, or external shadows. One front-facing production icon, not a mockup.

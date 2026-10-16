@@ -1,0 +1,17 @@
+build/
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.ipa
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.p8
+*.key
+*.log
+.env
+.env.*
+*.store
+*.store-shm
+*.store-wal

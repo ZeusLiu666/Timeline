@@ -1,0 +1,47 @@
+/* Use the public CJK family explicitly. Some simulator WebContent processes
+   resolve the system font's implicit Chinese fallback to LastResort. */
+:root { color-scheme: light; font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Heiti SC", "Segoe UI", Helvetica, Arial, sans-serif; color: #303433; background: transparent; font-synthesis: none; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow-y: hidden; background: transparent; -webkit-text-size-adjust: 100%; }
+.markdown-body { display: flow-root; width: 100%; margin: 0; padding: 2px 0; overflow-wrap: anywhere; font-size: 14px; line-height: 1.78; }
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+p, ul, ol, blockquote, pre, table, .math-display { margin: 0 0 14px; }
+h1, h2, h3, h4, h5, h6 { margin: 24px 0 13px; font-weight: 600; line-height: 1.35; color: #242a29; overflow-wrap: anywhere; }
+h1 { font-size: 1.9em; padding-bottom: 8px; border-bottom: 1px solid #e5e7e5; }
+h2 { font-size: 1.5em; padding-bottom: 7px; border-bottom: 1px solid #e5e7e5; }
+h3 { font-size: 1.22em; }
+h4, h5, h6 { font-size: 1em; }
+h6 { color: #737b77; }
+a { color: #b35e43; text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 600; }
+ul, ol { padding-left: 25px; }
+li + li { margin-top: 5px; }
+li > p { margin-top: 8px; margin-bottom: 8px; }
+li > ul, li > ol { margin-top: 5px; margin-bottom: 3px; }
+.contains-task-list { padding-left: 4px; list-style: none; }
+.task-list-item { padding-left: 23px; position: relative; }
+.task-list-item-checkbox { position: absolute; left: 0; top: 5px; width: 14px; height: 14px; margin: 0; accent-color: #b66c4c; opacity: 0.85; pointer-events: none; }
+blockquote { padding: 3px 0 3px 15px; border-left: 3px solid #d9ddd8; color: #778079; }
+blockquote > :last-child { margin-bottom: 0; }
+hr { height: 1px; border: 0; background: #e3e6e2; margin: 22px 0; }
+code, pre { font-family: SFMono-Regular, Menlo, Consolas, "Liberation Mono", "PingFang SC", ui-monospace, monospace; font-size: 0.88em; }
+:not(pre) > code { padding: 0.17em 0.38em; border-radius: 4px; background: #f0f1ee; color: #915c4a; }
+pre { display: block; width: 100%; overflow-x: auto; overflow-y: hidden; padding: 13px 15px; border: 1px solid #e5e8e2; border-radius: 8px; background: #f6f7f3; line-height: 1.65; tab-size: 4; }
+pre code { font-size: 1em; overflow-wrap: normal; white-space: pre; }
+table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-spacing: 0; border-collapse: collapse; font-size: 0.95em; }
+th, td { min-width: 74px; padding: 8px 12px; border: 1px solid #dfe3dc; text-align: left; }
+th { font-weight: 600; background: #f3f5ef; }
+tr:nth-child(even) { background: #fafbf8; }
+.math-display { display: block; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 3px 0; overflow-wrap: normal; }
+.math-display .katex-display { margin: 0.7em 0; padding: 1px 3px; }
+.katex { font-size: 1.1em; }
+.math-error { display: inline-block; max-width: 100%; padding: 4px 7px; border-radius: 4px; color: #a6453b; background: #fff1ec; white-space: pre-wrap; overflow-wrap: anywhere; font-family: SFMono-Regular, Menlo, "PingFang SC", ui-monospace, monospace; font-size: 12px; }
+.blocked-image { display: inline-block; color: #80877f; padding: 3px 7px; border: 1px dashed #cfd6ca; border-radius: 4px; font-size: 12px; }
+::selection { background: #e5d5c5; }
+.quote-toolbar { position: absolute; top: 0; right: 2px; z-index: 20; display: flex; align-items: center; gap: 5px; margin: 0; text-align: right; }
+.quote-toolbar[hidden] { display: none; }
+.quote-toolbar button { height: 28px; padding: 3px 11px; color: #9a573b; background: #f7f1e8; border: 1px solid #e2d2bd; border-radius: 14px; font: inherit; font-size: 12px; cursor: pointer; touch-action: manipulation; }
+.quote-toolbar button:hover { background: #efe3d1; }
+.quote-toolbar .quote-dismiss { width: 28px; padding: 0; font-size: 17px; color: #777; background: #f5f5f5; border-color: #ddd; }

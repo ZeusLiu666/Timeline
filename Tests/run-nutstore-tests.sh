@@ -1,0 +1,16 @@
+#!/bin/zsh
+set -eu
+TIMELINE_TEST_ROOT="${0:A:h:h}"
+TIMELINE_TEST_OUTPUT="${1:-${TMPDIR:-/tmp}/Timeline-NutstoreChecks-$$}"
+mkdir -p "$TIMELINE_TEST_OUTPUT"
+cd "$TIMELINE_TEST_ROOT"
+swiftc -warnings-as-errors Timeline/NutstoreSyncDocument.swift Tests/NutstoreMergeTests.swift -o "$TIMELINE_TEST_OUTPUT/merge"
+"$TIMELINE_TEST_OUTPUT/merge"
+swiftc -warnings-as-errors Timeline/NutstoreCredentials.swift Timeline/NutstoreWebDAV.swift Tests/NutstoreWebDAVTests.swift -o "$TIMELINE_TEST_OUTPUT/webdav"
+"$TIMELINE_TEST_OUTPUT/webdav"
+swiftc -D TIMELINE_AUTH_TESTING -warnings-as-errors Timeline/NutstoreCredentials.swift Timeline/NutstoreWebDAV.swift Tests/NutstoreAuthenticationTests.swift -o "$TIMELINE_TEST_OUTPUT/authentication"
+"$TIMELINE_TEST_OUTPUT/authentication"
+swiftc -parse-as-library Timeline/Models.swift Tests/TimelineTrashTests.swift -o "$TIMELINE_TEST_OUTPUT/trash"
+"$TIMELINE_TEST_OUTPUT/trash"
+swiftc -parse-as-library Timeline/Models.swift Timeline/NutstoreSyncDocument.swift Timeline/NutstoreCredentials.swift Timeline/NutstoreWebDAV.swift Timeline/NutstoreSyncController.swift Tests/NutstoreControllerTests.swift -o "$TIMELINE_TEST_OUTPUT/controller"
+"$TIMELINE_TEST_OUTPUT/controller"

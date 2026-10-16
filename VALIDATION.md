@@ -1,0 +1,116 @@
+# v0.1.0 验证范围 / Validation scope
+
+以下汇总 2026-10-16 发布准备期间已完成的检查，区分自动测试、设备实测和未验收事项。工具环境为 Xcode 26.3 / Swift 6.2.4；部署目标为 macOS 14 / iOS 17。构建通过不代表所有操作系统版本和设备组合均已验收。
+
+This document summarizes checks completed during release preparation on October 16, 2026, distinguishing automated tests, device testing, and unverified behavior. The toolchain was Xcode 26.3 / Swift 6.2.4, targeting macOS 14 / iOS 17. A successful build does not validate every supported operating system and device combination.
+
+## 本次回收站更新 / Current Trash update
+
+回收站更新已通过 macOS Release 和 iPhone arm64 Release 构建，以及 12 项纯合并、4 项回收站与 22 项同步控制器离线检查。测试覆盖旧 v1 文档读取、v2 软删除和恢复、项目子记录保留、独立删除记录不随项目恢复、30 天到期边界及过期清理后陈旧快照不复活记录。
+
+The Trash update passed macOS Release and iPhone arm64 Release builds, plus 12 offline merge checks, 4 Trash checks, and 22 sync-controller checks. Coverage includes reading legacy v1 documents, v2 soft deletion and restoration, retaining project children, keeping separately deleted entries trashed after project restoration, the 30-day expiry boundary, and preventing stale snapshots from resurrecting expired items.
+
+本次已使用 Mac 与 iPhone 的现有数据库副本验证迁移，升级前后全部导出字段、UUID、关联和引用快照一致。Mac 隔离演示数据实测了单条记录与整个项目的移入回收站、恢复，以及恢复项目后独立删除的记录仍留在回收站。Store API 回归已验证同样的恢复规则、重复删除不重置期限及精确到期清理；引用保存原文保持不变。未实际等待 30 天，也未验证 iOS 在后台准点清理。应用关闭时，到期清理在下次启动或前台运行时补做。
+
+Migration was tested on copies of the existing Mac and iPhone databases; every exported field, UUID, relationship, and reference snapshot matched before and after. Isolated demo data on Mac verified moving individual entries and whole projects to Trash and restoring them, including retaining independently deleted entries in Trash after project restoration. Store API regression checks verified the same rules, repeated deletion without resetting retention, and cleanup at the exact expiry boundary, with stored reference JSON unchanged. The checks did not wait 30 real days or validate exact-time iOS background cleanup. When the app is closed, overdue cleanup runs on the next launch or foreground session.
+
+同步写出格式为 v2，仍使用 `TimelineSync-v1` 目录。新版可读 v1；旧版会拒绝 v2，因此需要 Mac / iPhone 一起更新。离线兼容测试不代表混用旧版客户端可安全继续同步。
+
+Sync writes use format v2 while retaining the `TimelineSync-v1` directory. New clients read v1; older clients reject v2, so update Mac and iPhone together. Offline compatibility checks do not establish that mixed old and new clients can continue syncing safely.
+
+## 构建与设备 / Builds and devices
+
+| 检查 / Check | 已有结果 / Existing evidence |
+| --- | --- |
+| macOS Debug 通用应用 / Universal macOS Debug app | Apple Silicon / Intel 编译通过；本地签名完整性检查与实际启动通过。<br>Apple Silicon / Intel builds, local signature integrity, and actual launch passed. |
+| macOS Release 发布构建 / macOS Release build | 含本次回收站更新的构建已通过。<br>The build including this Trash update passed. |
+| macOS 安装及覆盖更新 / macOS installation and update | 本次新版已覆盖安装到「应用程序」，交付文件一致且签名完整性检查通过；安装后的一致性数据库副本与升级前全部导出字段相同。完成 macOS 钥匙串授权后，主窗口与回收站入口正常，手动坚果云同步完成并显示新的成功时间，既有账户配置未重置。<br>The new build was installed in Applications with matching delivery files and a valid local signature. A consistent post-install database copy retained every exported field from before the update. After macOS Keychain authorization, the main window and Trash entry worked, and manual Nutstore sync completed with an updated success time; existing account settings were not reset. |
+| iOS Debug 模拟器 / iOS Debug simulator | 编译、启动与中文显示通过。<br>Build, launch, and Chinese text display passed. |
+| iOS Release 真机版本 / iOS Release on a physical device | 本次回收站 arm64 Release 构建、Personal Team 签名、覆盖安装与真机启动通过；安装后再次读取数据库副本，全部导出字段及关联与升级前一致。<br>The Trash arm64 Release build, Personal Team signature, update installation, and physical-device launch passed. A post-install database copy retained every exported field and relationship from before the update. |
+| 应用图标 / App icons | macOS / iOS 共 11 个规格已检查；Mac 透明圆角与 iOS 不透明主图正确，两端更新后启动通过。<br>All 11 macOS / iOS sizes were checked. Mac transparent corners and the opaque iOS master were correct; both apps launched after updating. |
+
+真实设备安装使用开发签名，仅验证安装流程。本项目目前为个人开发，现有 iPhone 签名有短期有效期，因此本次不发布 iPhone 安装包，只保留源码供使用者自行签名。macOS 发行包尚未经过 Developer ID 公证，iOS 尚未通过 App Store / TestFlight 分发。
+
+The physical-device installation used a development signature and validates only that installation path. This independently developed project currently has a short-lived iPhone signature, so no iPhone package is published; users can sign the included source themselves. The macOS package has not been notarized through Developer ID, and iOS distribution through the App Store / TestFlight has not been completed.
+
+## 自动回归 / Automated regression checks
+
+以下检查在临时数据库、旧数据库副本或模拟远端上完成。同步自动测试使用替身凭据，不访问真实账号、坚果云服务或个人钥匙串。
+
+The following checks use temporary databases, copies of an older database, or a simulated remote. Automated sync tests use dummy credentials and do not access real accounts, the Nutstore service, or a personal Keychain.
+
+| 范围 / Area | 已有结果与边界 / Existing evidence and limits |
+| --- | --- |
+| 模型与磁盘持久化 / Models and disk persistence | 项目关联、增删改查、重开读取、排序、字段保留及级联删除通过。<br>Project relationships, CRUD, reopening stored data, ordering, field preservation, and cascading deletion passed. |
+| 清单与快速记录 / Checklists and quick entries | Markdown 复选框切换、原文保留、自动标题及手动标题保留通过。<br>Markdown checkbox toggling, source preservation, automatic titles, and retaining manual titles passed. |
+| 年份标记 / Year labels | 每年最新记录锚点、今日占位、同日多条记录及本地跨年边界通过。<br>Labels at each year’s newest entry, the Today placeholder, multiple entries on one day, and local year boundaries passed. |
+| Markdown 与公式 / Markdown and formulas | 五种公式写法、表格、清单、代码、无效公式降级及精确选文通过。<br>Five formula syntaxes, tables, lists, code, invalid-formula fallback, and exact text selection passed. |
+| 保存失败恢复 / Save failure recovery | 失败后恢复已有字段、新增失败不遗留记录、引用不提前消费、成功重试通过。<br>Restoring fields after failure, avoiding leftover failed entries, retaining pending references, and successful retries passed. |
+| 引用 / References | 上下文快照、旧 JSON 兼容、删除来源后可阅读、持久化与拖动命中通过。<br>Context snapshots, older JSON compatibility, readability after source deletion, persistence, and drag hit testing passed. |
+| 引用布局 / Reference layout | 2,000 个随机避让案例通过。<br>2,000 randomized collision-avoidance cases passed. |
+| 旧库迁移 / Older database migration | Mac 与 iPhone 现有库均已复制后演练新增可选回收站字段的迁移；全部导出数据字节一致，关联检查通过。<br>Copies of the current Mac and iPhone databases were migrated with the new optional Trash fields; all exported data matched byte for byte, and relationship checks passed. |
+| 坚果云纯合并 / Nutstore merge logic | 12/12 通过，不访问网络或密钥；覆盖旧 v1 JSON、软删除与恢复、到期永久删除，以及离线并发编辑不能直接恢复回收站内容。<br>12/12 passed without network or credential access, covering legacy v1 JSON, soft deletion and restoration, terminal expiry deletion, and preventing concurrent offline edits from directly restoring trashed content. |
+| 回收站持久化与清理 / Trash persistence and cleanup | 4/4 通过；覆盖项目恢复保留子记录、元数据与独立回收站状态，精确 30 天边界，项目到期级联清理及保存失败可回滚。<br>4/4 passed, covering project restoration with children, metadata and separate Trash state retained, the exact 30-day boundary, cascading project expiry, and rollback-safe persistence. |
+| 坚果云控制器 / Nutstore controller | 22/22 通过，使用真实 SwiftData 临时数据库与模拟远端；覆盖 24 小时间隔、无变化不请求、重启、失败冷却、手动同步和上传期间保存，以及项目回收站跨端恢复、记录身份保留和到期清理不复活。<br>22/22 passed with a real temporary SwiftData database and simulated remote, covering the 24-hour interval, no requests without changes, relaunches, failure cooldown, manual sync and saves during upload, plus cross-device Trash restoration, retained entry identity, and expiry without resurrection. |
+| WebDAV 传输 / WebDAV transport | 离线检查通过，覆盖目录范围、设备隔离、XML、ETag、大小限制、HTTP 错误与退避。<br>Offline checks passed for directory scope, device isolation, XML, ETag, size limits, HTTP errors, and backoff. |
+| URLSession 认证 / URLSession authentication | 委托策略与离线 URLProtocol 响应处理通过；不能替代真实 CFNetwork 认证握手。<br>Delegate policy and offline URLProtocol response handling passed; this does not replace a real CFNetwork authentication handshake. |
+| WebKit 预加载 / WebKit preloading | 真实离屏检查通过，覆盖实例复用、公式与字体、栏宽变更后的高度重测、引用与双击回调重新绑定。<br>Real offscreen checks passed for instance reuse, formulas and fonts, height measurement after width changes, and rebinding reference and double-click callbacks. |
+
+复现同步与预加载检查：
+
+To reproduce the sync and preload checks:
+
+```sh
+zsh Tests/run-nutstore-tests.sh
+zsh Tests/run-markdown-preload.sh
+```
+
+其他独立回归位于 `Tests/Timeline*Tests.swift`。`Tests/markdown-renderer.test.cjs` 使用 Node.js 与 jsdom 检查随应用打包的渲染器；需要先提供 jsdom 运行环境。
+
+Other standalone regression checks are in `Tests/Timeline*Tests.swift`. `Tests/markdown-renderer.test.cjs` uses Node.js and jsdom to check the bundled renderer; a jsdom runtime must be available first.
+
+## 界面实测 / Interface testing
+
+Mac 已实测：展开与切换记录、双击原位编辑、新增、保存与取消、预览切换、搜索、栏目显隐、问题勾选、侧栏切换，以及当前会话内跨项目草稿保留。
+
+The Mac app was tested for expanding and switching entries, double-click editing in place, creating entries, saving and canceling, toggling preview, searching, section visibility, checking questions, toggling the sidebar, and retaining drafts when switching projects within one session.
+
+Mac 与 iPhone 模拟器已实测「选区旁引用弹窗 → 引用区 → 拖入记录 → 原位编辑 → 保存后消费引用 / 取消后保留」流程，并核对来源上下文预览。模拟器还检查了窄屏布局、键盘适配与保存后聚焦。
+
+The Mac app and iPhone simulator were tested through the flow “selection popover → reference shelf → drag into an entry → edit in place → consume the reference on save / retain it on cancel,” including source-context preview. Simulator checks also covered narrow layouts, keyboard handling, and focus after saving.
+
+WebKit 缓存与预加载已通过渲染路径检查；未据此声称完整界面或 iOS 达到某个帧率。真实 iPhone 的完整手势、草稿与引用组合操作尚未全部验收。密码显示 / 隐藏已实现并通过两端编译，其实际切换交互尚未单独验收。
+
+WebKit caching and preloading passed rendering-path checks; this is not evidence of a particular frame rate for the full interface or iOS. Complete combinations of gestures, drafts, and references have not all been validated on a physical iPhone. Password visibility is implemented and builds on both platforms, but the actual show / hide interaction has not been separately validated.
+
+## macOS 菜单栏与窗口 / macOS menu bar and windows
+
+- 菜单栏窗口边界修复已通过 macOS Release 构建。隔离界面实测：关闭主窗口后，通过同一弹窗切换入口展开和收起速览，可见正常层窗口数始终为 0；双击记录正文后，主窗口进入对应记录编辑器。实际状态栏图标的坐标点击受到自动化工具窗口定位限制，因此未据此声称所有鼠标事件组合已验收。<br>The menu-bar window-boundary fix passed the macOS Release build. In isolated UI checks, opening and closing the preview through its shared toggle action kept the visible normal-window count at zero after closing the main window; double-clicking entry body text opened the matching editor. Coordinate clicks on the actual status item were limited by the automation tool’s window resolution, so these checks do not establish full mouse-event coverage.
+- 正式新版 Mac 界面已核对：菜单栏没有滑动提示、记录数量或「只读浏览」文字；三个栏目同时打开时仅有一个可见「实时预览」标题。冷却期内打开弹窗未进入同步中，手动点击仍可开始同步。Mac 与 iPhone 更新安装及启动成功。<br>The installed Mac UI was checked: the popover has no swipe hint, entry count, or read-only label, and the three-section editor has exactly one visible live-preview heading. Opening the popover during cooldown did not start sync; a manual click still started it. Updated Mac and iPhone installations launched successfully.
+- 此前 24 小时自动同步策略与界面清理已通过 macOS Release 与 iPhone 真机 Release 构建；当时离线回归包括 9 项合并、WebDAV / 认证和 19 项控制器检查。本次回收站更新后的最新检查数量见上方自动回归表。上次成功时间在重建后保留，上传失败或编辑暂停不会推进该时间。<br>The earlier 24-hour automatic-sync policy and UI cleanup passed macOS Release and physical-device iPhone Release builds, with 9 merge, WebDAV / authentication, and 19 controller checks at that time. See the automated-regression table above for the latest Trash-update counts. The last successful time survives controller recreation and does not advance after upload failure or an editing pause.
+- 正式 Mac 应用此前已验证点击状态直接同步并显示成功时间；目前自动同步已改为本地变化且间隔至少 24 小时，打开弹窗只触发资格检查。时间策略使用可调时钟和网络请求计数验证，未实际等待 24 小时。手机端点击后的界面行为尚未独立验证。<br>The installed Mac app previously verified direct sync on status click and the successful completion time. Automatic sync now requires local changes and a minimum 24-hour interval; opening the popover only checks eligibility. Timing was verified with an adjustable clock and request counts, without waiting 24 real hours. The iPhone post-tap UI behavior has not been independently verified.
+- 在隔离的临时数据模式下，已检查菜单栏布局、项目标签切换、只读问题状态，以及删除「打开主窗口」按钮后的底栏。双击 Markdown 正文已实际打开主窗口并进入对应记录的编辑器。<br>In isolated temporary-data mode, checks covered the menu bar layout, project tab switching, read-only question states, and the footer without an “Open main window” button. Double-clicking Markdown body text opened the main window and entered the matching entry editor.
+- 临时草稿输入后，关闭主窗口不退出进程；重新打开窗口后，未保存的标题仍保留。窗口关闭后也通过系统窗口列表确认正常窗口数为零。<br>After entering a temporary draft, closing the main window kept the process running. Reopening retained the unsaved title. The system window list also confirmed zero visible normal windows after closing.
+- Dock 隐藏切换已通过运行进程的 activation policy 验证为 accessory，隐藏后仍能打开菜单栏弹窗。<br>Dock hiding was verified through the running process’s accessory activation policy, and the menu bar popover remained accessible afterward.
+- 整页跟手分页、松手吸附、边界阻尼、捕获后消费横向事件，以及每页独立展开状态已作代码审阅。自动界面工具对菜单栏弹窗的坐标拖动出现窗口定位错误，因此没有据此宣称已完成全部触控板手势组合或帧率验收。<br>Code review covered whole-page gesture tracking, release snapping, edge resistance, consuming captured horizontal events, and independent expanded-entry state per page. The UI automation tool encountered window-position errors when dragging popovers by coordinates, so these checks do not establish full trackpad-gesture coverage or a measured frame rate.
+
+## 真实同步 / Live-service sync
+
+- 本次回收站版本的正式 Mac 已完成钥匙串授权后的手动同步，界面显示成功时间；同步后全部保存字段与升级前一致。此检查未在真实项目上执行删除或恢复，相关跨设备行为仍由离线测试覆盖。<br>The installed Mac Trash build completed a manual sync after Keychain authorization and displayed a new success time. All saved fields matched the pre-update data afterward. This check did not delete or restore real projects; those cross-device behaviors remain covered by offline tests.
+
+- Mac 正式应用已连接真实坚果云，完成读取与上传，后续前台自动同步继续成功。<br>The Mac app connected to the real Nutstore service, completed reads and uploads, and continued to sync automatically in the foreground.
+- 使用者在真实 iPhone 配置同一坚果云账号后，确认手机已显示 Mac 上已有的项目与记录。这是 Mac → iPhone 的实际使用反馈。<br>After configuring the same Nutstore account on a physical iPhone, a user confirmed that the Mac’s existing projects and entries appeared on the phone. This is user-confirmed Mac → iPhone behavior.
+- 尚未独立进行云端文件字节级读回比对、手机修改传回 Mac、双设备并发修改或远程删除实测。离线合并与控制器测试不替代这些服务端往返检查。<br>Byte-for-byte cloud-file readback, edits from iPhone back to Mac, concurrent edits across two devices, and remote deletions have not been independently tested. Offline merge and controller tests do not replace these service round-trip checks.
+- 连接调试中曾出现 HTTP 401。认证实现调整为受限的 URLSession challenge delegate 后也曾出现 401，随后重试成功；具体根因未被证明，不能将代码调整单独视为已证实的根因修复。<br>HTTP 401 responses occurred during connection debugging. A 401 also occurred after switching authentication to a restricted URLSession challenge delegate, followed by successful retries. The root cause was not established, so the code change alone is not a proven root-cause fix.
+
+## 尚未覆盖 / Not yet covered
+
+- 全部受支持系统版本和硬件组合，以及长期大规模记录的性能与稳定性。<br>Every supported OS and hardware combination, and long-term performance and stability with large datasets.
+- iOS 后台实时同步、完整双向冲突 / 删除验收与 CloudKit 真实同步。<br>Real-time iOS background sync, complete bidirectional conflict / deletion validation, and live CloudKit sync.
+- 退出应用后恢复未保存草稿。<br>Recovery of unsaved drafts after quitting the app.
+- 真实 iPhone 的完整回收站交互，以及真实双设备删除 / 恢复往返；Mac 隔离界面和离线同步测试不替代这些实际验收。<br>Complete Trash interactions on a physical iPhone and live two-device deletion / restoration round trips; isolated Mac UI checks and offline sync tests do not replace these checks.
+- 图片附件、多人协作及交互式历史版本；这些功能尚未实现。回收站保留期内可恢复删除，但到期清理后无法恢复。<br>Image attachments, collaboration, and interactive version history remain unimplemented. Trash supports restoring deletions during retention, but not after expiry cleanup.
+
+当前同步使用 HTTPS 和本机 Keychain，但云端 JSON 未额外端到端加密。首次同步前快照与冲突副本不能替代独立备份。安装、同步配置及其他限制见 [README.md](README.md)。
+
+Sync uses HTTPS and the local Keychain, but cloud JSON has no additional end-to-end encryption. Pre-sync snapshots and conflict copies do not replace independent backups. See [README.md](README.md) for installation, sync setup, and other limitations.
